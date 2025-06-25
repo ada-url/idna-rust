@@ -12,7 +12,7 @@ fn test_wpt_basic_ascii_domains() {
         ("a.b.c.d.e", "a.b.c.d.e"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),

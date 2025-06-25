@@ -55,10 +55,9 @@ fn test_map_unicode_normalization() {
         ("ø", "ø"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = mapping::map(input);
-        println!("Unicode mapping: '{}' -> '{}'", input, result);
-        // Note: Exact expected values may need adjustment based on normalization rules
+        assert_eq!(result, expected, "Unicode mapping mismatch for '{}'", input);
     }
 }
 
@@ -78,10 +77,9 @@ fn test_map_case_folding() {
         ("Ελληνικά", "ελληνικά"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = mapping::map(input);
-        println!("Case folding: '{}' -> '{}'", input, result);
-        // Note: Some Unicode case folding rules are complex
+        assert_eq!(result, expected, "Case folding mismatch for '{}'", input);
     }
 }
 
@@ -103,10 +101,13 @@ fn test_map_special_characters() {
         ), // Multiple handling
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = mapping::map(input);
-        println!("Special chars: '{}' -> '{}'", input, result);
-        // Note: Expected behavior may vary based on IDNA mapping rules
+        assert_eq!(
+            result, expected,
+            "Special chars mapping mismatch for '{}'",
+            input
+        );
     }
 }
 
@@ -168,10 +169,13 @@ fn test_map_international_scripts() {
         ("ไทย", "ไทย"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = mapping::map(input);
-        println!("International script: '{}' -> '{}'", input, result);
-        // Note: Scripts without case distinctions should remain unchanged
+        assert_eq!(
+            result, expected,
+            "International script mapping mismatch for '{}'",
+            input
+        );
     }
 }
 
@@ -189,9 +193,12 @@ fn test_map_bidirectional_characters() {
         ("test\u{202c}example", "testexample"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = mapping::map(input);
-        println!("Bidirectional: '{}' -> '{}'", input, result);
-        // Note: Expected behavior depends on IDNA mapping rules for bidi chars
+        assert_eq!(
+            result, expected,
+            "Bidirectional mapping mismatch for '{}'",
+            input
+        );
     }
 }

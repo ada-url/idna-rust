@@ -13,7 +13,7 @@ fn test_to_ascii_basic() {
         ("bücher.example", "xn--bcher-kva.example"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),
@@ -82,7 +82,7 @@ fn test_to_ascii_edge_cases() {
         ("simple.café.com", "simple.xn--caf-dma.com"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),

@@ -16,19 +16,16 @@ fn test_to_unicode_basic() {
         ("xn--3e0b707e.com", "한국.com"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("to_unicode: '{}' -> '{}'", input, actual);
-            // Note: Some Unicode normalization may cause slight differences
-            // For ASCII domains, should match exactly
-            if !input.contains("xn--") {
-                assert_eq!(actual, _expected, "ASCII domain mismatch for: '{}'", input);
-            }
-        } else {
-            println!("Failed to convert '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Failed to convert '{}': {:?}",
+            input,
+            result
+        );
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Mismatch for input: '{}'", input);
     }
 }
 
@@ -47,15 +44,11 @@ fn test_to_unicode_punycode_decoding() {
         ("xn--mxacd.com", "αβγ.com"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Punycode decode: '{}' -> '{}'", input, actual);
-            // Note: Exact matching may require proper Unicode normalization
-        } else {
-            println!("Failed to decode '{}': {:?}", input, result);
-        }
+        assert!(result.is_ok(), "Failed to decode '{}': {:?}", input, result);
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Punycode decode mismatch for '{}'", input);
     }
 }
 
@@ -70,14 +63,16 @@ fn test_to_unicode_mixed_domains() {
         ("xn--caf-dma.xn--strae-oqa.de", "café.straße.de"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Mixed domain: '{}' -> '{}'", input, actual);
-        } else {
-            println!("Failed to convert mixed domain '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Failed to convert mixed domain '{}': {:?}",
+            input,
+            result
+        );
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Mixed domain mismatch for '{}'", input);
     }
 }
 
@@ -94,17 +89,16 @@ fn test_to_unicode_invalid_punycode() {
         let result = to_unicode(input);
         // Invalid punycode should either error or pass through unchanged
         if result.is_err() {
-            println!(
-                "Invalid punycode '{}' correctly failed: {:?}",
-                input, result
-            );
+            // Expected behavior for invalid punycode
+            assert!(result.is_err(), "Invalid punycode should fail: '{}'", input);
         } else {
             let output = result.unwrap();
-            println!(
-                "Invalid punycode '{}' passed through as: '{}'",
-                input, output
-            );
             // Some implementations might pass through invalid punycode unchanged
+            assert!(
+                !output.is_empty(),
+                "Output should not be empty for '{}'",
+                input
+            );
         }
     }
 }
@@ -122,7 +116,7 @@ fn test_to_unicode_edge_cases() {
         ("xn--caf-dma.123.com", "café.123.com"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         if input.is_empty() {
             let result = to_unicode(input);
             assert!(result.is_err(), "Empty string should be invalid");
@@ -130,12 +124,14 @@ fn test_to_unicode_edge_cases() {
         }
 
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Edge case: '{}' -> '{}'", input, actual);
-        } else {
-            println!("Edge case '{}' failed: {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Edge case should succeed for '{}': {:?}",
+            input,
+            result
+        );
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Edge case mismatch for '{}'", input);
     }
 }
 
@@ -151,27 +147,29 @@ fn test_to_unicode_roundtrip_consistency() {
 
     for punycode in punycode_domains {
         let unicode_result = to_unicode(punycode);
-        if unicode_result.is_ok() {
-            let unicode_domain = unicode_result.unwrap();
+        assert!(
+            unicode_result.is_ok(),
+            "Failed to convert to unicode: '{}'",
+            punycode
+        );
+        let unicode_domain = unicode_result.unwrap();
 
-            // Try to convert back to ASCII
-            let ascii_result = ada_idna::domain::to_ascii(&unicode_domain);
-            if ascii_result.is_ok() {
-                let back_to_ascii = ascii_result.unwrap();
-                println!(
-                    "Roundtrip: '{}' -> '{}' -> '{}'",
-                    punycode, unicode_domain, back_to_ascii
-                );
+        // Try to convert back to ASCII
+        let ascii_result = ada_idna::domain::to_ascii(&unicode_domain);
+        assert!(
+            ascii_result.is_ok(),
+            "Failed to convert back to ASCII: '{}'",
+            unicode_domain
+        );
+        let back_to_ascii = ascii_result.unwrap();
 
-                // Should roundtrip back to the same punycode (case-insensitive)
-                assert_eq!(
-                    back_to_ascii.to_lowercase(),
-                    punycode.to_lowercase(),
-                    "Roundtrip failed for: '{}'",
-                    punycode
-                );
-            }
-        }
+        // Should roundtrip back to the same punycode (case-insensitive)
+        assert_eq!(
+            back_to_ascii.to_lowercase(),
+            punycode.to_lowercase(),
+            "Roundtrip failed for: '{}'",
+            punycode
+        );
     }
 }
 
@@ -183,15 +181,16 @@ fn test_to_unicode_case_insensitive() {
         ("Xn--Caf-Dma.Com", "café.com"),
     ];
 
-    for (input, _expected) in test_cases {
+    for (input, expected) in test_cases {
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Case test: '{}' -> '{}'", input, actual);
-            // Punycode should be case-insensitive
-        } else {
-            println!("Case test failed for '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Case test failed for '{}': {:?}",
+            input,
+            result
+        );
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Case test mismatch for '{}'", input);
     }
 }
 
@@ -208,13 +207,19 @@ fn test_to_unicode_script_validation() {
         ("xn--22cdfh1b8fsa.com", "ยจฆฟคฏข.com"),   // Thai
     ];
 
-    for (punycode, _expected_unicode) in script_tests {
+    for (punycode, expected_unicode) in script_tests {
         let result = to_unicode(punycode);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Script test: '{}' -> '{}'", punycode, actual);
-        } else {
-            println!("Script conversion failed for '{}': {:?}", punycode, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Script conversion failed for '{}': {:?}",
+            punycode,
+            result
+        );
+        let actual = result.unwrap();
+        assert_eq!(
+            actual, expected_unicode,
+            "Script test mismatch for '{}'",
+            punycode
+        );
     }
 }
