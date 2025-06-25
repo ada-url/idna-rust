@@ -12,7 +12,7 @@ fn test_wpt_basic_ascii_domains() {
         ("a.b.c.d.e", "a.b.c.d.e"),
     ];
 
-    for (input, expected) in test_cases {
+    for (input, _expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),
@@ -49,13 +49,17 @@ fn test_wpt_unicode_to_ascii() {
 
     for (input, expected) in test_cases {
         let result = to_ascii(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("WPT Unicode->ASCII: '{}' -> '{}'", input, actual);
-            // Note: Exact expected values may need adjustment based on implementation
-        } else {
-            println!("WPT Unicode->ASCII failed for '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "WPT: Failed to convert Unicode->ASCII for '{}'",
+            input
+        );
+        let actual = result.unwrap();
+        assert_eq!(
+            actual, expected,
+            "WPT: Unicode->ASCII mismatch for '{}'",
+            input
+        );
     }
 }
 
@@ -79,12 +83,17 @@ fn test_wpt_ascii_to_unicode() {
 
     for (input, expected) in test_cases {
         let result = to_unicode(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("WPT ASCII->Unicode: '{}' -> '{}'", input, actual);
-        } else {
-            println!("WPT ASCII->Unicode failed for '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "WPT: Failed to convert ASCII->Unicode for '{}'",
+            input
+        );
+        let actual = result.unwrap();
+        assert_eq!(
+            actual, expected,
+            "WPT: ASCII->Unicode mismatch for '{}'",
+            input
+        );
     }
 }
 
@@ -194,25 +203,31 @@ fn test_wpt_international_domains() {
 
     for (unicode_input, expected_ascii) in international_cases {
         let ascii_result = to_ascii(unicode_input);
-        if ascii_result.is_ok() {
-            let actual_ascii = ascii_result.unwrap();
-            println!(
-                "WPT International: '{}' -> '{}'",
-                unicode_input, actual_ascii
-            );
+        assert!(
+            ascii_result.is_ok(),
+            "WPT: Failed to convert international domain '{}'",
+            unicode_input
+        );
+        let actual_ascii = ascii_result.unwrap();
+        assert_eq!(
+            actual_ascii, expected_ascii,
+            "WPT: International domain mismatch for '{}'",
+            unicode_input
+        );
 
-            // Test roundtrip
-            let unicode_result = to_unicode(&actual_ascii);
-            if unicode_result.is_ok() {
-                let roundtrip_unicode = unicode_result.unwrap();
-                println!("  Roundtrip: '{}' -> '{}'", actual_ascii, roundtrip_unicode);
-            }
-        } else {
-            println!(
-                "WPT International conversion failed for '{}': {:?}",
-                unicode_input, ascii_result
-            );
-        }
+        // Test roundtrip
+        let unicode_result = to_unicode(&actual_ascii);
+        assert!(
+            unicode_result.is_ok(),
+            "WPT: Failed to roundtrip convert '{}'",
+            actual_ascii
+        );
+        let roundtrip_unicode = unicode_result.unwrap();
+        assert_eq!(
+            roundtrip_unicode, unicode_input,
+            "WPT: Roundtrip mismatch for '{}'",
+            unicode_input
+        );
     }
 }
 
@@ -236,12 +251,17 @@ fn test_wpt_normalization_cases() {
 
     for (input, expected) in normalization_cases {
         let result = to_ascii(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("WPT Normalization: '{}' -> '{}'", input, actual);
-        } else {
-            println!("WPT Normalization failed for '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "WPT: Failed to convert normalization case '{}'",
+            input
+        );
+        let actual = result.unwrap();
+        assert_eq!(
+            actual, expected,
+            "WPT: Normalization mismatch for '{}'",
+            input
+        );
     }
 }
 
@@ -260,11 +280,11 @@ fn test_wpt_mixed_script_validation() {
     for (input, should_succeed) in mixed_script_cases {
         let result = to_ascii(input);
         if should_succeed {
-            if result.is_ok() {
-                println!("WPT Mixed script OK: '{}' -> '{}'", input, result.unwrap());
-            } else {
-                println!("WPT Mixed script failed: '{}' -> {:?}", input, result);
-            }
+            assert!(
+                result.is_ok(),
+                "WPT: Mixed script should succeed for '{}'",
+                input
+            );
         } else {
             assert!(
                 result.is_err(),

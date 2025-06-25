@@ -1,4 +1,4 @@
-use ada_idna::domain::{IdnaError, to_unicode};
+use ada_idna::domain::to_unicode;
 
 #[test]
 fn test_to_unicode_basic() {

@@ -88,11 +88,10 @@ fn test_utf8_to_utf32_length() {
 
     for (input, expected_len) in test_cases {
         let actual_len = unicode::utf8_to_utf32_length(input.as_bytes());
-        println!("UTF-8 '{}' has {} UTF-32 code points", input, actual_len);
-        // Note: Expected values may need adjustment based on actual Unicode handling
-        assert!(
-            actual_len > 0 || input.is_empty(),
-            "Length should be positive for non-empty strings"
+        assert_eq!(
+            actual_len, expected_len,
+            "UTF-32 length mismatch for '{}'",
+            input
         );
     }
 }
@@ -120,11 +119,6 @@ fn test_utf8_to_utf32_conversion() {
 
     for input in test_cases {
         let utf32_chars = unicode::utf8_to_utf32(input.as_bytes());
-        println!(
-            "UTF-8 to UTF-32: '{}' -> {} chars",
-            input,
-            utf32_chars.len()
-        );
 
         // Verify the conversion produces valid UTF-32
         assert!(
@@ -132,14 +126,17 @@ fn test_utf8_to_utf32_conversion() {
             "Non-empty input should produce non-empty output"
         );
 
-        // Try to convert back to UTF-8
+        // Try to convert back to UTF-8 for roundtrip test
         let utf8_bytes = unicode::utf32_to_utf8(&utf32_chars);
         if !utf8_bytes.is_empty() {
             let roundtrip = String::from_utf8(utf8_bytes);
-            if let Ok(roundtrip_str) = roundtrip {
-                println!("Roundtrip: '{}' -> '{}'", input, roundtrip_str);
-                // Note: Some normalization might occur during roundtrip
-            }
+            assert!(
+                roundtrip.is_ok(),
+                "Failed to roundtrip UTF-8 conversion for '{}'",
+                input
+            );
+            let roundtrip_str = roundtrip.unwrap();
+            assert_eq!(roundtrip_str, input, "Roundtrip mismatch for '{}'", input);
         }
     }
 }
@@ -167,26 +164,26 @@ fn test_utf32_to_utf8_conversion() {
     for utf32_seq in test_utf32_sequences {
         let utf8_bytes = unicode::utf32_to_utf8(&utf32_seq);
 
-        if !utf8_bytes.is_empty() {
-            if let Ok(utf8_str) = String::from_utf8(utf8_bytes.clone()) {
-                println!("UTF-32 {:X?} -> UTF-8 '{}'", utf32_seq, utf8_str);
+        assert!(
+            !utf8_bytes.is_empty(),
+            "UTF-32 to UTF-8 conversion should not produce empty result for {:X?}",
+            utf32_seq
+        );
 
-                // Test roundtrip conversion
-                let back_to_utf32 = unicode::utf8_to_utf32(&utf8_bytes);
-                if back_to_utf32 == utf32_seq {
-                    println!("  Roundtrip successful");
-                } else {
-                    println!(
-                        "  Roundtrip mismatch: {:X?} != {:X?}",
-                        back_to_utf32, utf32_seq
-                    );
-                }
-            } else {
-                println!("UTF-32 {:X?} -> invalid UTF-8 bytes", utf32_seq);
-            }
-        } else {
-            println!("UTF-32 {:X?} -> empty UTF-8", utf32_seq);
-        }
+        let utf8_str = String::from_utf8(utf8_bytes.clone());
+        assert!(
+            utf8_str.is_ok(),
+            "UTF-32 {:X?} should produce valid UTF-8",
+            utf32_seq
+        );
+
+        // Test roundtrip conversion
+        let back_to_utf32 = unicode::utf8_to_utf32(&utf8_bytes);
+        assert_eq!(
+            back_to_utf32, utf32_seq,
+            "Roundtrip conversion failed for UTF-32 {:X?}",
+            utf32_seq
+        );
     }
 }
 
@@ -218,11 +215,6 @@ fn test_identifier_validation_edge_cases() {
         let first_pos = validation::valid_name_code_point_first_position(ch as u32);
         let other_pos = validation::valid_name_code_point_other_position(ch as u32);
 
-        println!(
-            "Character '{}' (U+{:04X}): first={}, other={}",
-            ch, ch as u32, first_pos, other_pos
-        );
-
         // Control and format characters should generally be invalid
         if ch.is_control() || ch as u32 == 0x00AD || ch as u32 == 0x200C || ch as u32 == 0x200D {
             assert!(
@@ -231,6 +223,17 @@ fn test_identifier_validation_edge_cases() {
                 ch as u32
             );
         }
+
+        assert_eq!(
+            first_pos, expected_valid,
+            "First position validation mismatch for U+{:04X}",
+            ch as u32
+        );
+        assert_eq!(
+            other_pos, expected_valid,
+            "Other position validation mismatch for U+{:04X}",
+            ch as u32
+        );
     }
 }
 
@@ -259,14 +262,9 @@ fn test_unicode_categories() {
         ('-', "Dash Punctuation", false), // Valid in middle positions only
     ];
 
-    for (ch, category, expected_first) in category_tests {
+    for (ch, _category, expected_first) in category_tests {
         let first_pos = validation::valid_name_code_point_first_position(ch as u32);
         let other_pos = validation::valid_name_code_point_other_position(ch as u32);
-
-        println!(
-            "'{}' ({}): first={}, other={}",
-            ch, category, first_pos, other_pos
-        );
 
         if ch.is_alphabetic() {
             assert!(
@@ -280,5 +278,11 @@ fn test_unicode_categories() {
                 ch
             );
         }
+
+        assert_eq!(
+            first_pos, expected_first,
+            "First position validation mismatch for '{}' ({})",
+            ch, _category
+        );
     }
 }

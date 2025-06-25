@@ -13,7 +13,7 @@ fn test_to_ascii_basic() {
         ("bücher.example", "xn--bcher-kva.example"),
     ];
 
-    for (input, expected) in test_cases {
+    for (input, _expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),
@@ -32,7 +32,7 @@ fn test_to_ascii_special_characters() {
     assert!(result.is_ok());
 
     // Test soft hyphen removal
-    let result = to_ascii("ex­ample.com"); // Contains U+00AD soft hyphen
+    let result = to_ascii("ex\u{AD}ample.com"); // Contains U+00AD soft hyphen
     assert!(result.is_ok());
 
     // Test replacement character
@@ -82,7 +82,7 @@ fn test_to_ascii_edge_cases() {
         ("simple.café.com", "simple.xn--caf-dma.com"),
     ];
 
-    for (input, expected) in test_cases {
+    for (input, _expected) in test_cases {
         let result = to_ascii(input);
         assert!(
             result.is_ok(),
@@ -113,14 +113,13 @@ fn test_to_ascii_unicode_scripts() {
 
     for (input, expected) in test_cases {
         let result = to_ascii(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Unicode script test: '{}' -> '{}'", input, actual);
-            // Note: Expected values may need adjustment based on actual implementation
-            // For now, just verify the conversion doesn't fail
-        } else {
-            println!("Failed to convert '{}': {:?}", input, result);
-        }
+        assert!(
+            result.is_ok(),
+            "Failed to convert Unicode script '{}'",
+            input
+        );
+        let actual = result.unwrap();
+        assert_eq!(actual, expected, "Unicode script mismatch for '{}'", input);
     }
 }
 
@@ -149,16 +148,24 @@ fn test_to_ascii_punycode_expansion() {
 
     for (input, expected) in test_cases {
         let result = to_ascii(input);
-        if result.is_ok() {
-            let actual = result.unwrap();
-            println!("Punycode expansion: '{}' -> '{}'", input, actual);
-            // Verify it starts with xn-- for Unicode labels
-            if input.chars().any(|c| !c.is_ascii()) {
-                assert!(
-                    actual.contains("xn--"),
-                    "Unicode input should produce punycode output"
-                );
-            }
+        assert!(
+            result.is_ok(),
+            "Failed to convert punycode expansion '{}'",
+            input
+        );
+        let actual = result.unwrap();
+        assert_eq!(
+            actual, expected,
+            "Punycode expansion mismatch for '{}'",
+            input
+        );
+
+        // Verify it starts with xn-- for Unicode labels
+        if !input.is_ascii() {
+            assert!(
+                actual.contains("xn--"),
+                "Unicode input should produce punycode output"
+            );
         }
     }
 }
