@@ -1,0 +1,14 @@
+[package]
+name = "ada-idna"
+version = "0.1.0"
+edition = "2024"
+authors = ["ada-idna contributors"]
+description = "Fast IDNA (Internationalized Domain Names in Applications) implementation in Rust"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ada-url/idna-rust"
+keywords = ["idna", "unicode", "punycode", "domain", "url"]
+categories = ["text-processing", "web-programming"]
+
+[dependencies]
+
+[dev-dependencies]
