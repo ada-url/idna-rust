@@ -3,7 +3,7 @@ use std::ptr;
 pub fn utf8_to_utf32(buf: &[u8]) -> Vec<u32> {
     let mut pos = 0;
     let len = buf.len();
-    let mut output = Vec::new();
+    let mut output = Vec::with_capacity(utf8_to_utf32_length(buf)); // Use exact capacity for better performance
 
     while pos < len {
         if pos + 16 <= len {
@@ -127,7 +127,7 @@ pub fn utf8_to_utf32_length(buf: &[u8]) -> usize {
 pub fn utf32_to_utf8(buf: &[u32]) -> Vec<u8> {
     let mut pos = 0;
     let len = buf.len();
-    let mut output = Vec::new();
+    let mut output = Vec::with_capacity(utf8_length_from_utf32(buf)); // Use exact capacity for better performance
 
     while pos < len {
         if pos + 2 <= len {

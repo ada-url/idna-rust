@@ -1,7 +1,10 @@
 use crate::unicode_tables::*;
 
 pub fn normalize(input: &str) -> String {
-    let mut chars: Vec<u32> = input.chars().map(|c| c as u32).collect();
+    // Optimize: Pre-allocate with estimated capacity
+    let char_count = input.chars().count();
+    let mut chars: Vec<u32> = Vec::with_capacity(char_count + char_count / 4); // Allow for expansion
+    chars.extend(input.chars().map(|c| c as u32));
 
     // Decompose and reorder (NFC normalization)
     decompose_nfc(&mut chars);

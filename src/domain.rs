@@ -15,19 +15,25 @@ pub fn to_ascii(domain: &str) -> Result<String, IdnaError> {
         return Err(IdnaError::EmptyLabel);
     }
 
-    let labels: Vec<&str> = domain.split('.').collect();
-    let mut result_labels = Vec::with_capacity(labels.len());
+    // Optimize: Use single string buffer instead of collecting into Vec
+    let mut result = String::with_capacity(domain.len() + 16); // Estimate capacity
+    let mut first = true;
 
-    for label in labels {
+    for label in domain.split('.') {
         if label.is_empty() {
             return Err(IdnaError::EmptyLabel);
         }
 
+        if !first {
+            result.push('.');
+        }
+        first = false;
+
         let ascii_label = process_label_to_ascii(label)?;
-        result_labels.push(ascii_label);
+        result.push_str(&ascii_label);
     }
 
-    Ok(result_labels.join("."))
+    Ok(result)
 }
 
 pub fn to_unicode(domain: &str) -> Result<String, IdnaError> {
@@ -35,19 +41,25 @@ pub fn to_unicode(domain: &str) -> Result<String, IdnaError> {
         return Err(IdnaError::EmptyLabel);
     }
 
-    let labels: Vec<&str> = domain.split('.').collect();
-    let mut result_labels = Vec::with_capacity(labels.len());
+    // Optimize: Use single string buffer instead of collecting into Vec
+    let mut result = String::with_capacity(domain.len() + 16); // Estimate capacity
+    let mut first = true;
 
-    for label in labels {
+    for label in domain.split('.') {
         if label.is_empty() {
             return Err(IdnaError::EmptyLabel);
         }
 
+        if !first {
+            result.push('.');
+        }
+        first = false;
+
         let unicode_label = process_label_to_unicode(label)?;
-        result_labels.push(unicode_label);
+        result.push_str(&unicode_label);
     }
 
-    Ok(result_labels.join("."))
+    Ok(result)
 }
 
 fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {

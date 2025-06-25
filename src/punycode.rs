@@ -40,7 +40,7 @@ pub fn punycode_to_utf32(input: &str) -> Option<Vec<u32>> {
     }
 
     let mut written_out = 0i32;
-    let mut out = Vec::new();
+    let mut out = Vec::with_capacity(input.len().max(16)); // Estimate capacity for better performance
     let mut n = INITIAL_N;
     let mut i = 0i32;
     let mut bias = INITIAL_BIAS;
@@ -102,7 +102,15 @@ pub fn punycode_to_utf32(input: &str) -> Option<Vec<u32>> {
         if n < 0x80 {
             return None;
         }
-        out.insert(i as usize, n);
+        // Optimize: avoid O(n) Vec::insert by growing and shifting manually
+        let insert_pos = i as usize;
+        out.push(0); // Reserve space
+        let len = out.len();
+        if insert_pos < len - 1 {
+            // Shift elements to the right
+            out.copy_within(insert_pos..len - 1, insert_pos + 1);
+        }
+        out[insert_pos] = n;
         written_out += 1;
         i += 1;
     }

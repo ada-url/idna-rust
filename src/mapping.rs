@@ -43,10 +43,18 @@ pub fn map(input: &str) -> String {
             '\u{200E}' | '\u{200F}' => continue,
             '\u{202A}' | '\u{202B}' | '\u{202C}' | '\u{202D}' | '\u{202E}' => continue,
 
-            // Case folding - use Unicode lowercase, not just ASCII
+            // Case folding - optimize for common ASCII case
             _ => {
-                for lowercase_char in c.to_lowercase() {
-                    result.push(lowercase_char);
+                // Fast path for ASCII characters
+                if c.is_ascii() && c.is_ascii_uppercase() {
+                    result.push(c.to_ascii_lowercase());
+                } else if c.is_ascii() {
+                    result.push(c);
+                } else {
+                    // Full Unicode case folding for non-ASCII
+                    for lowercase_char in c.to_lowercase() {
+                        result.push(lowercase_char);
+                    }
                 }
             }
         }

@@ -42,19 +42,19 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 | Benchmark | ada-idna | idna crate | Ratio |
 |-----------|----------|------------|-------|
-| **Batch to_ascii conversion** | 13.81 µs | 6.13 µs | 2.25x slower |
-| **Batch to_unicode conversion** | 5.99 µs | 5.47 µs | 1.09x slower |
-| **Single ASCII domain** | 116.77 ns | 20.52 ns | 5.69x slower |
-| **Single Unicode domain** | 331.00 ns | 137.99 ns | 2.40x slower |
-| **Complex Unicode domain** | 766.56 ns | 312.98 ns | 2.45x slower |
-| **Non-Latin scripts** | 567.54 ns | 263.87 ns | 2.15x slower |
-| **CJK domains** | 735.40 ns | 315.63 ns | 2.33x slower |
-| **Mixed scripts** | 488.21 ns | 208.40 ns | 2.34x slower |
+| **Batch to_ascii conversion** | 10.73 µs | 6.20 µs | 1.73x slower |
+| **Batch to_unicode conversion** | 4.03 µs | 5.40 µs | **0.75x faster** |
+| **Single ASCII domain** | 88.42 ns | 18.63 ns | 4.75x slower |
+| **Single Unicode domain** | 235.88 ns | 136.15 ns | 1.73x slower |
+| **Complex Unicode domain** | 454.33 ns | 323.59 ns | 1.40x slower |
+| **Non-Latin scripts** | 416.15 ns | 237.69 ns | 1.75x slower |
+| **CJK domains** | 538.57 ns | 308.43 ns | 1.75x slower |
+| **Mixed scripts** | 372.37 ns | 229.58 ns | 1.62x slower |
 
 **Ada-idna specific operations:**
-- Punycode encoding: 2.19 µs
-- Punycode decoding: 828.64 ns  
-- Unicode normalization: 1.36 µs
+- Punycode encoding: 1.78 µs
+- Punycode decoding: 648.71 ns
+- Unicode normalization: 937.95 ns
 
 *Run `cargo bench` to reproduce these results on your system.*
 
@@ -63,7 +63,8 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 🚧 **This implementation is incomplete and not ready for production use.** 
 
 Known limitations:
-- Performance is 2-6x slower than the mature `idna` crate
+- Performance is 1.4-4.7x slower than the mature `idna` crate
+- **Ada-idna is now faster than idna crate for to_unicode conversion** ⚡
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete
 - Error handling needs refinement
