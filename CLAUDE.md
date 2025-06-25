@@ -59,12 +59,43 @@ cargo clippy
 
 # Format (ALWAYS run before committing)
 cargo fmt
+
+# Run benchmarks (compares with idna crate)
+cargo bench
 ```
 
 ### Pre-commit Checklist
 1. `cargo test` - All tests must pass
 2. `cargo clippy` - No clippy warnings allowed
 3. `cargo fmt` - Code must be properly formatted
+
+## Benchmarks
+
+Comprehensive benchmarks comparing ada-idna performance with the popular "idna" crate:
+
+- **to_ascii conversion**: Batch Unicode → ASCII conversion performance
+- **to_unicode conversion**: Batch ASCII → Unicode conversion performance  
+- **Punycode encoding/decoding**: Individual punycode operations
+- **Unicode normalization**: NFC normalization performance
+- **Single domain performance**: Per-domain conversion overhead
+
+### Latest Results
+
+| Benchmark | ada-idna | idna crate | Performance Gap |
+|-----------|----------|------------|-----------------|
+| Batch to_ascii | 13.81 µs | 6.13 µs | 2.25x slower |
+| Batch to_unicode | 5.99 µs | 5.47 µs | 1.09x slower |
+| Single ASCII domain | 116.77 ns | 20.52 ns | 5.69x slower |
+| Single Unicode domain | 331.00 ns | 137.99 ns | 2.40x slower |
+| Complex Unicode | 766.56 ns | 312.98 ns | 2.45x slower |
+
+**Performance Notes:**
+- Ada-idna is currently 2-6x slower than the mature idna crate
+- ASCII domains show the largest performance gap (5.69x slower)
+- Unicode to ASCII conversion is more competitive (1.09x slower)
+- Individual operations: Punycode encoding (2.19 µs), decoding (828 ns), normalization (1.36 µs)
+
+Run `cargo bench` to execute all benchmarks and compare performance.
 
 ## Current Status
 

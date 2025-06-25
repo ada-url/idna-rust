@@ -12,3 +12,9 @@ categories = ["text-processing", "web-programming"]
 [dependencies]
 
 [dev-dependencies]
+idna = "1.0"
+criterion = "0.5"
+
+[[bench]]
+name = "idna_comparison"
+harness = false

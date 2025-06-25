@@ -36,11 +36,34 @@ assert_eq!(unicode_domain, "café.example");
 - **Validation**: Domain label and character validation
 - **High performance**: Optimized UTF-8 ↔ UTF-32 transcoding
 
+## Performance
+
+Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
+
+| Benchmark | ada-idna | idna crate | Ratio |
+|-----------|----------|------------|-------|
+| **Batch to_ascii conversion** | 13.81 µs | 6.13 µs | 2.25x slower |
+| **Batch to_unicode conversion** | 5.99 µs | 5.47 µs | 1.09x slower |
+| **Single ASCII domain** | 116.77 ns | 20.52 ns | 5.69x slower |
+| **Single Unicode domain** | 331.00 ns | 137.99 ns | 2.40x slower |
+| **Complex Unicode domain** | 766.56 ns | 312.98 ns | 2.45x slower |
+| **Non-Latin scripts** | 567.54 ns | 263.87 ns | 2.15x slower |
+| **CJK domains** | 735.40 ns | 315.63 ns | 2.33x slower |
+| **Mixed scripts** | 488.21 ns | 208.40 ns | 2.34x slower |
+
+**Ada-idna specific operations:**
+- Punycode encoding: 2.19 µs
+- Punycode decoding: 828.64 ns  
+- Unicode normalization: 1.36 µs
+
+*Run `cargo bench` to reproduce these results on your system.*
+
 ## Current Status
 
 🚧 **This implementation is incomplete and not ready for production use.** 
 
 Known limitations:
+- Performance is 2-6x slower than the mature `idna` crate
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete
 - Error handling needs refinement
@@ -62,6 +85,9 @@ cargo clippy
 
 # Format code
 cargo fmt
+
+# Run benchmarks (compares with idna crate)
+cargo bench
 ```
 
 ### Project Structure
