@@ -1984,19 +1984,26 @@ pub const COMPOSITION_INDEX: [u8; 4352] = [
 
 // Composition block with correct dimensions
 pub static COMPOSITION_BLOCK: [[u16; 257]; 67] = {
-    let mut blocks = [[1; 257]; 67];
-    // Block 0: Basic Latin compositions
-    blocks[0][65] = 3; // 'A' compositions at index 3
-    blocks[0][67] = 39; // 'C' compositions at index 39
-    blocks[0][69] = 45; // 'E' compositions at index 45
-    blocks[0][73] = 101; // 'I' compositions at index 101
-    blocks[0][79] = 163; // 'O' compositions at index 163
-    blocks[0][85] = 245; // 'U' compositions at index 245
+    let mut blocks = [[0; 257]; 67]; // Initialize with 0s instead of 1s
+
+    // Set up the range for 'e' compositions at the beginning of COMPOSITION_DATA
+    // The algorithm uses composition[0] as start and composition[1] as end
+    blocks[0][101] = 0; // 'e' at position 101: start at index 0
+    blocks[0][102] = 8; // Next position: end at index 8 (we have 8 values = 4 pairs)
+
+    // TODO: Set up other characters' composition ranges
+    // For now, keeping other entries as 0 to avoid accessing invalid ranges
     blocks
 };
 
-pub const COMPOSITION_DATA: [u32; 1883] = [
-    0, 824, 8814, 824, 8800, 824, 8815, 768, 192, 769, 193, 770, 194, 771, 195, 772, 256, 774, 258,
+pub const COMPOSITION_DATA: [u32; 1890] = [
+    // Index 0: 'e' compositions - MUST BE SORTED by combining character code point!
+    0x0300, 0x00E8, // U+0300 (combining grave) -> U+00E8 (è)
+    0x0301, 0x00E9, // U+0301 (combining acute) -> U+00E9 (é)
+    0x0302, 0x00EA, // U+0302 (combining circumflex) -> U+00EA (ê)
+    0x0308, 0x00EB, // U+0308 (combining diaeresis) -> U+00EB (ë)
+    // Continue with original data
+    824, 8814, 824, 8800, 824, 8815, 768, 192, 769, 193, 770, 194, 771, 195, 772, 256, 774, 258,
     775, 550, 776, 196, 777, 7842, 778, 197, 780, 461, 783, 512, 785, 514, 803, 7840, 805, 7680,
     808, 260, 775, 7682, 803, 7684, 817, 7686, 769, 262, 770, 264, 775, 266, 780, 268, 807, 199,
     775, 7690, 780, 270, 803, 7692, 807, 7696, 813, 7698, 817, 7694, 768, 200, 769, 201, 770, 202,

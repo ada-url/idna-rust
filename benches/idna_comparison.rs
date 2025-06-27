@@ -243,7 +243,7 @@ fn benchmark_single_domain_performance(c: &mut Criterion) {
     ];
 
     for (name, domain) in domains.iter() {
-        let mut group = c.benchmark_group(&format!("single_domain_{}", name));
+        let mut group = c.benchmark_group(format!("single_domain_{}", name));
 
         group.bench_function("ada_idna_to_ascii", |b| {
             b.iter(|| ada_idna::domain::to_ascii(black_box(domain)))

@@ -199,6 +199,7 @@ fn compose(input: &mut Vec<u32>) {
                             right = middle;
                         }
                     }
+
                     if left < COMPOSITION_DATA.len()
                         && COMPOSITION_DATA[left] == input[input_count + 1]
                         && left + 1 < COMPOSITION_DATA.len()
@@ -232,7 +233,7 @@ fn compose(input: &mut Vec<u32>) {
     }
 
     if composition_count < input_count {
-        input.resize(composition_count, 0);
+        input.truncate(composition_count);
     }
 }
 
@@ -247,6 +248,22 @@ mod tests {
         assert!(!result.is_empty());
         // For now, just ensure it doesn't crash and returns something
         // Full Unicode table implementation would be needed for proper testing
+    }
+
+    #[test]
+    fn test_normalize_combining() {
+        // Test combining accent normalization
+        let composed = "é"; // U+00E9
+        let decomposed = "e\u{0301}"; // e + combining acute accent
+
+        let result_composed = normalize(composed);
+        let result_decomposed = normalize(decomposed);
+
+        // Both should normalize to the same form
+        assert_eq!(
+            result_composed, result_decomposed,
+            "NFC normalization should make both forms equivalent"
+        );
     }
 
     #[test]

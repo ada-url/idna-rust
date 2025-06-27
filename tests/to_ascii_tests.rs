@@ -29,18 +29,19 @@ fn test_to_ascii_basic() {
 fn test_to_ascii_special_characters() {
     // Test German capital sharp S (ẞ)
     let result = to_ascii("faẞ.de");
-    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), "xn--fa-hia.de");
 
     // Test soft hyphen removal
     let result = to_ascii("ex\u{AD}ample.com"); // Contains U+00AD soft hyphen
-    assert!(result.is_ok());
+    assert_eq!(result.unwrap(), "example.com");
 
     // Test replacement character
     let result = to_ascii("ex�ample.com"); // Contains U+FFFD replacement character
     // This should likely fail or be handled specially
-    if result.is_ok() {
-        println!("Replacement character result: {}", result.unwrap());
-    }
+    assert!(
+        result.is_err(),
+        "Replacement character should cause an error"
+    );
 }
 
 #[test]

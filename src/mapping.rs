@@ -12,12 +12,17 @@ pub fn ascii_map(input: &str) -> String {
 }
 
 pub fn map(input: &str) -> String {
-    let mut result = String::with_capacity(input.len());
+    // Apply normalization first, as per C++ implementation
+    let normalized = crate::normalization::normalize(input);
+    let mut result = String::with_capacity(normalized.len());
 
-    for c in input.chars() {
+    for c in normalized.chars() {
         match c {
             // Soft hyphen - remove completely
             '\u{00AD}' => continue,
+
+            // Space normalization - convert various space characters to regular space
+            '\u{00A0}' | '\u{2002}' | '\u{2003}' => result.push(' '), // Non-breaking space, en space, em space -> regular space
 
             // Special case mappings
             '\u{00DF}' => result.push_str("ss"),

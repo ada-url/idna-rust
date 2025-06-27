@@ -95,10 +95,7 @@ fn test_map_special_characters() {
         ("test\u{2003}example", "test example"), // Em space -> regular space
         // Soft hyphen removal
         ("ex\u{00ad}ample", "example"),
-        (
-            "soft\u{00ad}hyphen\u{00ad}test",
-            "soft\u{00ad}hyphen\u{00ad}test",
-        ), // Multiple handling
+        ("soft\u{00ad}hyphen\u{00ad}test", "softhyphentest"), // Multiple soft hyphens should be removed
     ];
 
     for (input, expected) in test_cases {
