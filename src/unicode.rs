@@ -1,33 +1,23 @@
-use std::ptr;
-
 pub fn utf8_to_utf32(buf: &[u8]) -> Vec<u32> {
     let mut pos = 0;
     let len = buf.len();
     let mut output = Vec::with_capacity(utf8_to_utf32_length(buf)); // Use exact capacity for better performance
 
     while pos < len {
+        // Optimized ASCII fast path similar to C++ implementation
         if pos + 16 <= len {
-            let mut v1: u64 = 0;
-            let mut v2: u64 = 0;
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    buf.as_ptr().add(pos),
-                    (&mut v1 as *mut u64) as *mut u8,
-                    8,
-                );
-                ptr::copy_nonoverlapping(
-                    buf.as_ptr().add(pos + 8),
-                    (&mut v2 as *mut u64) as *mut u8,
-                    8,
-                );
+            let chunk = unsafe { std::slice::from_raw_parts(buf.as_ptr().add(pos), 16) };
+
+            // Check if all 16 bytes are ASCII using efficient OR operation
+            let mut ascii_check = 0u8;
+            for &byte in chunk {
+                ascii_check |= byte;
             }
-            let v = v1 | v2;
-            if (v & 0x8080808080808080) == 0 {
-                let final_pos = pos + 16;
-                while pos < final_pos {
-                    output.push(buf[pos] as u32);
-                    pos += 1;
-                }
+
+            if ascii_check < 0x80 {
+                // All ASCII - efficient bulk copy
+                output.extend(chunk.iter().map(|&b| b as u32));
+                pos += 16;
                 continue;
             }
         }
@@ -130,19 +120,20 @@ pub fn utf32_to_utf8(buf: &[u32]) -> Vec<u8> {
     let mut output = Vec::with_capacity(utf8_length_from_utf32(buf)); // Use exact capacity for better performance
 
     while pos < len {
-        if pos + 2 <= len {
-            let mut v: u64 = 0;
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    buf.as_ptr().add(pos),
-                    (&mut v as *mut u64) as *mut u32,
-                    2,
-                );
+        // ASCII fast path for multiple codepoints
+        if pos + 4 <= len {
+            let chunk = unsafe { std::slice::from_raw_parts(buf.as_ptr().add(pos), 4) };
+
+            // Check if all 4 codepoints are ASCII
+            let mut ascii_check = 0u32;
+            for &cp in chunk {
+                ascii_check |= cp;
             }
-            if (v & 0xFFFFFF80FFFFFF80) == 0 {
-                output.push(buf[pos] as u8);
-                output.push(buf[pos + 1] as u8);
-                pos += 2;
+
+            if ascii_check < 0x80 {
+                // All ASCII - bulk convert
+                output.extend(chunk.iter().map(|&cp| cp as u8));
+                pos += 4;
                 continue;
             }
         }
