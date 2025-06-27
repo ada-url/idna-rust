@@ -35,22 +35,42 @@ pub fn valid_name_code_point_other_position(cp: u32) -> bool {
 }
 
 fn is_letter(cp: u32) -> bool {
-    matches!(
-        cp,
-        0x0041..=0x005A | 0x0061..=0x007A // A-Z, a-z
-        | 0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x00FF // Latin-1 Supplement letters
-        | 0x0100..=0x017F // Latin Extended-A
-        | 0x0180..=0x024F // Latin Extended-B
-        | 0x0370..=0x03FF // Greek and Coptic
-        | 0x0400..=0x04FF // Cyrillic
-        | 0x0590..=0x05FF // Hebrew
-        | 0x0600..=0x06FF // Arabic
-        | 0x4E00..=0x9FFF // CJK Unified Ideographs
-        | 0x3040..=0x309F // Hiragana
-        | 0x30A0..=0x30FF // Katakana
-        | 0xAC00..=0xD7AF // Hangul Syllables
-        | 0x0E00..=0x0E7F // Thai
-    )
+    match cp {
+        // Basic Latin letters
+        0x0041..=0x005A | 0x0061..=0x007A => true, // A-Z, a-z
+
+        // Latin-1 Supplement letters (excluding digits and symbols)
+        0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x00FF => true,
+
+        // Latin Extended-A and Extended-B
+        0x0100..=0x024F => true,
+
+        // Greek and Coptic - exclude unassigned/symbol ranges
+        0x0370..=0x0373 | 0x0376..=0x0377 | 0x037B..=0x037D | 0x037F..=0x03FF => {
+            // Exclude specific unassigned points like U+0378
+            !matches!(cp, 0x0378 | 0x0379 | 0x0380..=0x0383)
+        }
+
+        // Cyrillic
+        0x0400..=0x04FF => true,
+
+        // Hebrew
+        0x0590..=0x05FF => true,
+
+        // Arabic - exclude Arabic-Indic digits
+        0x0600..=0x06FF => !matches!(cp, 0x0660..=0x0669), // Exclude Arabic-Indic digits
+
+        // CJK, Hiragana, Katakana
+        0x4E00..=0x9FFF | 0x3040..=0x309F | 0x30A0..=0x30FF => true,
+
+        // Hangul Syllables
+        0xAC00..=0xD7AF => true,
+
+        // Thai
+        0x0E00..=0x0E7F => true,
+
+        _ => false,
+    }
 }
 
 pub fn contains_forbidden_domain_code_point(input: &str) -> bool {
