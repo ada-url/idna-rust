@@ -145,6 +145,12 @@ fn compose(input: &mut Vec<u32>) {
     while input_count < input.len() {
         input[composition_count] = input[input_count];
 
+        // Skip null characters that may have been left from decomposition
+        if input[input_count] == 0 {
+            input_count += 1;
+            continue;
+        }
+
         if input[input_count] >= HANGUL_LBASE && input[input_count] < HANGUL_LBASE + HANGUL_LCOUNT {
             if input_count + 1 < input.len()
                 && input[input_count + 1] >= HANGUL_VBASE
@@ -222,8 +228,8 @@ fn compose(input: &mut Vec<u32>) {
                     break; // Not a combining character
                 }
                 previous_ccc = ccc;
-                composition_count += 1;
                 input[composition_count] = input[input_count + 1];
+                composition_count += 1;
                 input_count += 1;
             }
         }
