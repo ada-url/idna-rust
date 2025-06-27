@@ -67,7 +67,19 @@ fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {
         return Err(IdnaError::LabelTooLong);
     }
 
+    // Fast path for ASCII-only labels - optimize the common case
     if validation::is_ascii(label) {
+        // Check if label is already lowercase ASCII - avoid allocation if possible
+        if label
+            .chars()
+            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        {
+            if !validation::is_label_valid(label) {
+                return Err(IdnaError::ValidationError);
+            }
+            return Ok(label.to_string());
+        }
+
         let mapped = mapping::ascii_map(label);
         if !validation::is_label_valid(&mapped) {
             return Err(IdnaError::ValidationError);
@@ -75,9 +87,15 @@ fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {
         return Ok(mapped);
     }
 
+    // Check for forbidden characters early to avoid expensive processing
+    if validation::contains_forbidden_domain_code_point(label) {
+        return Err(IdnaError::InvalidCharacter);
+    }
+
     let mapped = mapping::map(label);
     let normalized = normalization::normalize(&mapped);
 
+    // Recheck after normalization in case new forbidden chars were introduced
     if validation::contains_forbidden_domain_code_point(&normalized) {
         return Err(IdnaError::InvalidCharacter);
     }
@@ -89,7 +107,10 @@ fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {
 
     let punycode = punycode::utf32_to_punycode(&utf32_chars).ok_or(IdnaError::PunycodeError)?;
 
-    let result = format!("xn--{}", punycode);
+    // Optimize: Use string concatenation instead of format! for better performance
+    let mut result = String::with_capacity(4 + punycode.len());
+    result.push_str("xn--");
+    result.push_str(&punycode);
 
     if result.len() > 63 {
         return Err(IdnaError::LabelTooLong);
