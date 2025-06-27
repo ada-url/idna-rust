@@ -42,19 +42,19 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 | Benchmark | ada-idna | idna crate | Ratio |
 |-----------|----------|------------|-------|
-| **Batch to_ascii conversion** | 13.54 µs | 6.08 µs | 2.23x slower |
-| **Batch to_unicode conversion** | 4.88 µs | 5.39 µs | **0.90x faster** |
-| **Single ASCII domain** | 84.07 ns | 18.29 ns | 4.60x slower |
-| **Single Unicode domain** | 271.24 ns | 138.41 ns | 1.96x slower |
-| **Complex Unicode domain** | 707.86 ns | 334.27 ns | 2.12x slower |
-| **Non-Latin scripts** | 505.39 ns | 242.86 ns | 2.08x slower |
-| **CJK domains** | 752.46 ns | 284.25 ns | 2.65x slower |
-| **Mixed scripts** | 422.55 ns | 207.65 ns | 2.03x slower |
+| **Batch to_ascii conversion** | 14.09 µs | 5.82 µs | 2.42x slower |
+| **Batch to_unicode conversion** | 5.68 µs | 5.87 µs | **0.97x faster** |
+| **Single ASCII domain** | 79.24 ns | 20.00 ns | 3.96x slower |
+| **Single Unicode domain** | 318.19 ns | 132.78 ns | 2.40x slower |
+| **Complex Unicode domain** | 788.26 ns | 305.62 ns | 2.58x slower |
+| **Non-Latin scripts** | 512.55 ns | 246.42 ns | 2.08x slower |
+| **CJK domains** | 744.69 ns | 272.38 ns | 2.73x slower |
+| **Mixed scripts** | 431.62 ns | 203.87 ns | 2.12x slower |
 
 **Ada-idna specific operations:**
-- Punycode encoding: 1.63 µs
-- Punycode decoding: 635.16 ns
-- Unicode normalization: 1.03 µs
+- Punycode encoding: 1.68 µs
+- Punycode decoding: 668.04 ns
+- Unicode normalization: 1.29 µs
 
 *Run `cargo bench` to reproduce these results on your system.*
 
@@ -63,7 +63,7 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 🚧 **This implementation is incomplete and not ready for production use.** 
 
 Known limitations:
-- Performance is 1.96-4.6x slower than the mature `idna` crate
+- Performance is 2.08-3.96x slower than the mature `idna` crate
 - **Ada-idna is faster than idna crate for to_unicode conversion** ⚡
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete

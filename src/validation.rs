@@ -1,19 +1,40 @@
+const FORBIDDEN_SPECIFIC_CHARS: &[u32] = &[
+    0x0020, 0x0022, 0x0023, 0x0025, 0x002F, 0x003A, 0x003C, 0x003E, 0x003F, 0x0040, 0x005B, 0x005C,
+    0x005D, 0x005E, 0x007C,
+];
+
+#[inline]
+fn is_forbidden_domain_char(cp: u32) -> bool {
+    // Control characters (fast range checks)
+    if cp <= 0x001F || (cp >= 0x007F && cp <= 0x009F) {
+        return true;
+    }
+
+    // Specific forbidden characters (small array linear search is fast)
+    FORBIDDEN_SPECIFIC_CHARS.contains(&cp)
+}
+
 pub fn valid_name_code_point(cp: u32) -> bool {
-    matches!(
-        cp,
-        0x002D | 0x0030..=0x0039 | 0x0061..=0x007A
-        | 0x00B7
-        | 0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x037D
-        | 0x037F..=0x1FFF
-        | 0x200C | 0x200D
-        | 0x203F | 0x2040
-        | 0x2070..=0x218F
-        | 0x2C00..=0x2FEF
-        | 0x3001..=0xD7FF
-        | 0xF900..=0xFDCF
-        | 0xFDF0..=0xFFFD
-        | 0x10000..=0xEFFFF
-    )
+    // Fast path for common ASCII
+    if cp <= 0x007F {
+        return matches!(cp, 0x002D | 0x0030..=0x0039 | 0x0061..=0x007A);
+    }
+
+    // Range-based checks for better performance
+    match cp {
+        0x00B7 => true,
+        0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x037D => true,
+        0x037F..=0x1FFF => true,
+        0x200C | 0x200D => true,
+        0x203F | 0x2040 => true,
+        0x2070..=0x218F => true,
+        0x2C00..=0x2FEF => true,
+        0x3001..=0xD7FF => true,
+        0xF900..=0xFDCF => true,
+        0xFDF0..=0xFFFD => true,
+        0x10000..=0xEFFFF => true,
+        _ => false,
+    }
 }
 
 pub fn valid_name_code_point_first_position(cp: u32) -> bool {
@@ -34,21 +55,34 @@ pub fn valid_name_code_point_other_position(cp: u32) -> bool {
     }
 }
 
-fn is_letter(cp: u32) -> bool {
-    match cp {
-        // Basic Latin letters
-        0x0041..=0x005A | 0x0061..=0x007A => true, // A-Z, a-z
+const GREEK_UNASSIGNED: &[u32] = &[0x0378, 0x0379, 0x0380, 0x0381, 0x0382, 0x0383];
 
-        // Latin-1 Supplement letters (excluding digits and symbols)
+#[inline]
+fn is_arabic_indic_digit(cp: u32) -> bool {
+    matches!(cp, 0x0660..=0x0669)
+}
+
+#[inline]
+fn is_greek_unassigned(cp: u32) -> bool {
+    GREEK_UNASSIGNED.contains(&cp)
+}
+
+fn is_letter(cp: u32) -> bool {
+    // Fast path for ASCII letters
+    if cp <= 0x007A {
+        return matches!(cp, 0x0041..=0x005A | 0x0061..=0x007A);
+    }
+
+    match cp {
+        // Latin-1 Supplement letters
         0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x00FF => true,
 
         // Latin Extended-A and Extended-B
         0x0100..=0x024F => true,
 
-        // Greek and Coptic - exclude unassigned/symbol ranges
+        // Greek and Coptic - exclude unassigned
         0x0370..=0x0373 | 0x0376..=0x0377 | 0x037B..=0x037D | 0x037F..=0x03FF => {
-            // Exclude specific unassigned points like U+0378
-            !matches!(cp, 0x0378 | 0x0379 | 0x0380..=0x0383)
+            !is_greek_unassigned(cp)
         }
 
         // Cyrillic
@@ -58,7 +92,7 @@ fn is_letter(cp: u32) -> bool {
         0x0590..=0x05FF => true,
 
         // Arabic - exclude Arabic-Indic digits
-        0x0600..=0x06FF => !matches!(cp, 0x0660..=0x0669), // Exclude Arabic-Indic digits
+        0x0600..=0x06FF => !is_arabic_indic_digit(cp),
 
         // CJK, Hiragana, Katakana
         0x4E00..=0x9FFF | 0x3040..=0x309F | 0x30A0..=0x30FF => true,
@@ -74,17 +108,7 @@ fn is_letter(cp: u32) -> bool {
 }
 
 pub fn contains_forbidden_domain_code_point(input: &str) -> bool {
-    for c in input.chars() {
-        let cp = c as u32;
-        match cp {
-            0x0000..=0x001F | 0x007F..=0x009F => return true,
-            0x0020 | 0x0022 | 0x0023 | 0x0025 | 0x002F => return true,
-            0x003A | 0x003C | 0x003E | 0x003F | 0x0040 => return true,
-            0x005B | 0x005C | 0x005D | 0x005E | 0x007C => return true,
-            _ => continue,
-        }
-    }
-    false
+    input.chars().any(|c| is_forbidden_domain_char(c as u32))
 }
 
 pub fn is_ascii(input: &str) -> bool {
