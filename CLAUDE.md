@@ -79,28 +79,6 @@ Comprehensive benchmarks comparing ada-idna performance with the popular "idna" 
 - **Unicode normalization**: NFC normalization performance
 - **Single domain performance**: Per-domain conversion overhead
 
-### Latest Results (After Optimizations)
-
-| Benchmark | ada-idna | idna crate | Performance Gap | Improvement |
-|-----------|----------|------------|-----------------|-------------|
-| Batch to_ascii | 10.73 µs | 6.20 µs | 1.73x slower | ⬆️ **22.7%** |
-| Batch to_unicode | 4.03 µs | 5.40 µs | **0.75x faster** | ⬆️ **33.3%** |
-| Single ASCII domain | 88.42 ns | 18.63 ns | 4.75x slower | ⬆️ **25.7%** |
-| Single Unicode domain | 235.88 ns | 136.15 ns | 1.73x slower | ⬆️ **29.7%** |
-| Complex Unicode | 454.33 ns | 323.59 ns | 1.40x slower | ⬆️ **43.2%** |
-
-**Performance Notes:**
-- Major performance improvements across all benchmarks (18-43% faster)
-- **Ada-idna now outperforms idna crate for to_unicode conversion!** ⚡
-- Performance gap reduced from 2-6x to 1.4-4.7x slower
-- Individual operations: Punycode encoding (1.78 µs), decoding (649 ns), normalization (938 ns)
-
-**Key Optimizations Applied:**
-- Eliminated O(n) Vec::insert in punycode decoding
-- Added capacity hints to all vector allocations
-- Reduced string allocations in domain processing
-- Optimized Unicode conversion pipeline
-- Fast-path ASCII case folding in character mapping
 
 Run `cargo bench` to execute all benchmarks and compare performance.
 

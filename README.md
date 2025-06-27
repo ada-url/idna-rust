@@ -42,19 +42,19 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 | Benchmark | ada-idna | idna crate | Ratio |
 |-----------|----------|------------|-------|
-| **Batch to_ascii conversion** | 10.73 µs | 6.20 µs | 1.73x slower |
-| **Batch to_unicode conversion** | 4.03 µs | 5.40 µs | **0.75x faster** |
-| **Single ASCII domain** | 88.42 ns | 18.63 ns | 4.75x slower |
-| **Single Unicode domain** | 235.88 ns | 136.15 ns | 1.73x slower |
-| **Complex Unicode domain** | 454.33 ns | 323.59 ns | 1.40x slower |
-| **Non-Latin scripts** | 416.15 ns | 237.69 ns | 1.75x slower |
-| **CJK domains** | 538.57 ns | 308.43 ns | 1.75x slower |
-| **Mixed scripts** | 372.37 ns | 229.58 ns | 1.62x slower |
+| **Batch to_ascii conversion** | 13.54 µs | 6.08 µs | 2.23x slower |
+| **Batch to_unicode conversion** | 4.88 µs | 5.39 µs | **0.90x faster** |
+| **Single ASCII domain** | 84.07 ns | 18.29 ns | 4.60x slower |
+| **Single Unicode domain** | 271.24 ns | 138.41 ns | 1.96x slower |
+| **Complex Unicode domain** | 707.86 ns | 334.27 ns | 2.12x slower |
+| **Non-Latin scripts** | 505.39 ns | 242.86 ns | 2.08x slower |
+| **CJK domains** | 752.46 ns | 284.25 ns | 2.65x slower |
+| **Mixed scripts** | 422.55 ns | 207.65 ns | 2.03x slower |
 
 **Ada-idna specific operations:**
-- Punycode encoding: 1.78 µs
-- Punycode decoding: 648.71 ns
-- Unicode normalization: 937.95 ns
+- Punycode encoding: 1.63 µs
+- Punycode decoding: 635.16 ns
+- Unicode normalization: 1.03 µs
 
 *Run `cargo bench` to reproduce these results on your system.*
 
@@ -63,8 +63,8 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 🚧 **This implementation is incomplete and not ready for production use.** 
 
 Known limitations:
-- Performance is 1.4-4.7x slower than the mature `idna` crate
-- **Ada-idna is now faster than idna crate for to_unicode conversion** ⚡
+- Performance is 1.96-4.6x slower than the mature `idna` crate
+- **Ada-idna is faster than idna crate for to_unicode conversion** ⚡
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete
 - Error handling needs refinement
