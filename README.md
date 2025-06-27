@@ -42,18 +42,18 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 | Benchmark | ada-idna | idna crate | Ratio |
 |-----------|----------|------------|-------|
-| **Batch to_ascii conversion** | 14.09 µs | 5.82 µs | 2.42x slower |
-| **Batch to_unicode conversion** | 5.68 µs | 5.87 µs | **0.97x faster** |
-| **Single ASCII domain** | 79.24 ns | 20.00 ns | 3.96x slower |
-| **Single Unicode domain** | 318.19 ns | 132.78 ns | 2.40x slower |
-| **Complex Unicode domain** | 788.26 ns | 305.62 ns | 2.58x slower |
-| **Non-Latin scripts** | 512.55 ns | 246.42 ns | 2.08x slower |
-| **CJK domains** | 744.69 ns | 272.38 ns | 2.73x slower |
-| **Mixed scripts** | 431.62 ns | 203.87 ns | 2.12x slower |
+| **Batch to_ascii conversion** | 12.69 µs | 6.07 µs | 2.09x slower |
+| **Batch to_unicode conversion** | 5.06 µs | 5.26 µs | **0.96x faster** |
+| **Single ASCII domain** | 77.59 ns | 18.98 ns | 4.09x slower |
+| **Single Unicode domain** | 291.88 ns | 142.71 ns | 2.05x slower |
+| **Complex Unicode domain** | 796.04 ns | 306.25 ns | 2.60x slower |
+| **Non-Latin scripts** | 533.68 ns | 266.57 ns | 2.00x slower |
+| **CJK domains** | 735.26 ns | 294.66 ns | 2.49x slower |
+| **Mixed scripts** | 463.80 ns | 222.23 ns | 2.09x slower |
 
 **Ada-idna specific operations:**
-- Punycode encoding: 1.68 µs
-- Punycode decoding: 668.04 ns
+- Punycode encoding: 1.79 µs
+- Punycode decoding: 640.65 ns
 - Unicode normalization: 1.29 µs
 
 *Run `cargo bench` to reproduce these results on your system.*
@@ -63,7 +63,7 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 🚧 **This implementation is incomplete and not ready for production use.** 
 
 Known limitations:
-- Performance is 2.08-3.96x slower than the mature `idna` crate
+- Performance is 2.00-4.09x slower than the mature `idna` crate
 - **Ada-idna is faster than idna crate for to_unicode conversion** ⚡
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete
