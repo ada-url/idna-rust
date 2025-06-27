@@ -6,7 +6,7 @@ const FORBIDDEN_SPECIFIC_CHARS: &[u32] = &[
 #[inline]
 fn is_forbidden_domain_char(cp: u32) -> bool {
     // Control characters (fast range checks)
-    if cp <= 0x001F || (cp >= 0x007F && cp <= 0x009F) {
+    if cp <= 0x001F || (0x007F..=0x009F).contains(&cp) {
         return true;
     }
 
@@ -21,20 +21,24 @@ pub fn valid_name_code_point(cp: u32) -> bool {
     }
 
     // Range-based checks for better performance
-    match cp {
-        0x00B7 => true,
-        0x00C0..=0x00D6 | 0x00D8..=0x00F6 | 0x00F8..=0x037D => true,
-        0x037F..=0x1FFF => true,
-        0x200C | 0x200D => true,
-        0x203F | 0x2040 => true,
-        0x2070..=0x218F => true,
-        0x2C00..=0x2FEF => true,
-        0x3001..=0xD7FF => true,
-        0xF900..=0xFDCF => true,
-        0xFDF0..=0xFFFD => true,
-        0x10000..=0xEFFFF => true,
-        _ => false,
-    }
+    matches!(
+        cp,
+        0x00B7
+            | 0x00C0..=0x00D6
+            | 0x00D8..=0x00F6
+            | 0x00F8..=0x037D
+            | 0x037F..=0x1FFF
+            | 0x200C
+            | 0x200D
+            | 0x203F
+            | 0x2040
+            | 0x2070..=0x218F
+            | 0x2C00..=0x2FEF
+            | 0x3001..=0xD7FF
+            | 0xF900..=0xFDCF
+            | 0xFDF0..=0xFFFD
+            | 0x10000..=0xEFFFF
+    )
 }
 
 pub fn valid_name_code_point_first_position(cp: u32) -> bool {
