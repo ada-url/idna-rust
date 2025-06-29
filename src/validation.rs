@@ -1,17 +1,19 @@
-const FORBIDDEN_SPECIFIC_CHARS: &[u32] = &[
-    0x0020, 0x0022, 0x0023, 0x0025, 0x002F, 0x003A, 0x003C, 0x003E, 0x003F, 0x0040, 0x005B, 0x005C,
-    0x005D, 0x005E, 0x007C,
+/// 256-byte lookup table for forbidden ASCII code points, matching C++ implementation.
+/// 1 = forbidden, 0 = allowed.
+static IS_FORBIDDEN_DOMAIN_CODE_POINT_TABLE: [u8; 256] = [
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 ];
 
 #[inline]
 fn is_forbidden_domain_char(cp: u32) -> bool {
-    // Control characters (fast range checks)
-    if cp <= 0x001F || (0x007F..=0x009F).contains(&cp) {
-        return true;
-    }
-
-    // Specific forbidden characters (small array linear search is fast)
-    FORBIDDEN_SPECIFIC_CHARS.contains(&cp)
+  IS_FORBIDDEN_DOMAIN_CODE_POINT_TABLE[cp as usize] != 0
 }
 
 pub fn valid_name_code_point(cp: u32) -> bool {
@@ -129,7 +131,42 @@ pub fn is_label_valid(label: &str) -> bool {
     }
 
     if let Some(stripped) = label.strip_prefix("xn--") {
-        return crate::punycode::verify_punycode(stripped);
+        // 1. Verify punycode is valid and decode it
+        let decoded = crate::punycode::punycode_to_utf32(stripped);
+        if decoded.is_none() {
+            return false;
+        }
+        let decoded = decoded.unwrap();
+
+        // 2. If the decoded is all-ASCII, it should not have been encoded as punycode
+        if decoded.iter().all(|&cp| cp < 0x80) {
+            return false;
+        }
+
+        // 3. Convert decoded UTF-32 to UTF-8 string for mapping and normalization
+        let decoded_utf8_bytes = crate::unicode::utf32_to_utf8(&decoded);
+        let decoded_utf8 = String::from_utf8_lossy(&decoded_utf8_bytes);
+        let mapped = crate::mapping::map(&decoded_utf8);
+        let normalized = crate::normalization::normalize(&mapped);
+
+        // 4. Convert normalized string back to UTF-32 for comparison
+        let normalized_utf32 = crate::unicode::utf8_to_utf32(normalized.as_bytes());
+
+        // 5. Ensure the decoded label is unchanged after mapping and normalization
+        if normalized_utf32 != decoded {
+            return false;
+        }
+
+        // 6. The label must not be empty and must pass valid_name_code_point for all code points
+        if normalized_utf32.is_empty() {
+            return false;
+        }
+        for &cp in &normalized_utf32 {
+            if !valid_name_code_point(cp) {
+                return false;
+            }
+        }
+        return true;
     }
 
     for c in label.chars() {

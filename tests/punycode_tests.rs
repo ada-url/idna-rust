@@ -41,7 +41,8 @@ fn check_punycode_roundtrip(utf8_string: &str, puny_string: &str) {
 #[test]
 fn test_punycode_fixture_alternating() {
     let fixture_path = "tests/fixtures/utf8_punycode_alternating.txt";
-    let data = fs::read_to_string(fixture_path).expect("Failed to read utf8_punycode_alternating.txt fixture");
+    let data = fs::read_to_string(fixture_path)
+        .expect("Failed to read utf8_punycode_alternating.txt fixture");
 
     for (i, line) in data.lines().enumerate() {
         // Skip comments and empty lines
