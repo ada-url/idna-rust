@@ -49,7 +49,6 @@ pub fn to_unicode(domain: &str) -> Result<String, IdnaError> {
         if label.is_empty() {
             return Err(IdnaError::EmptyLabel);
         }
-
         if !first {
             result.push('.');
         }
@@ -124,7 +123,8 @@ fn process_label_to_unicode(label: &str) -> Result<String, IdnaError> {
         if !validation::is_label_valid(label) {
             return Err(IdnaError::ValidationError);
         }
-        return Ok(label.to_string());
+        // Avoid allocation if possible: return the label as-is if valid
+        return Ok(label.to_owned());
     }
 
     let punycode_part = &label[4..];

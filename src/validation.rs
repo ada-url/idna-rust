@@ -13,7 +13,11 @@ static IS_FORBIDDEN_DOMAIN_CODE_POINT_TABLE: [u8; 256] = [
 
 #[inline]
 fn is_forbidden_domain_char(cp: u32) -> bool {
-  IS_FORBIDDEN_DOMAIN_CODE_POINT_TABLE[cp as usize] != 0
+    if cp < 256 {
+        IS_FORBIDDEN_DOMAIN_CODE_POINT_TABLE[cp as usize] != 0
+    } else {
+        false
+    }
 }
 
 pub fn valid_name_code_point(cp: u32) -> bool {
