@@ -13,8 +13,8 @@ fn test_to_ascii_alternating_fixture() {
     for i in (0..lines.len()).step_by(2) {
         let input = lines[i];
         let expected = lines[i + 1];
-        let result = to_ascii(input).unwrap_or_else(|_| String::new());
-        assert_eq!(result, expected, "Mismatch for input: '{}'", input);
+        let result = to_ascii(input).unwrap_or_else(|_| String::new().into());
+        assert_eq!(result.as_ref(), expected, "Mismatch for input: '{}'", input);
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::{mapping, normalization, punycode, unicode, validation};
+use std::borrow::Cow;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub enum IdnaError {
     InvalidInput,
     LabelTooLong,
@@ -10,30 +11,51 @@ pub enum IdnaError {
     ValidationError,
 }
 
-pub fn to_ascii(domain: &str) -> Result<String, IdnaError> {
+pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
     if domain.is_empty() {
         return Err(IdnaError::EmptyLabel);
     }
 
-    // Optimize: Use single string buffer instead of collecting into Vec
-    let mut result = String::with_capacity(domain.len() + 16); // Estimate capacity
-    let mut first = true;
-
-    for label in domain.split('.') {
-        if label.is_empty() {
-            return Err(IdnaError::EmptyLabel);
+    // Fast path: check if the whole domain is valid ASCII and doesn't need transformation
+    let mut label_start = 0;
+    let mut all_ascii = true;
+    let mut needs_alloc = false;
+    let bytes = domain.as_bytes();
+    let mut i = 0;
+    while i <= bytes.len() {
+        if i == bytes.len() || bytes[i] == b'.' {
+            let label = &domain[label_start..i];
+            if label.is_empty() {
+                return Err(IdnaError::EmptyLabel);
+            }
+            match process_label_to_ascii(label)? {
+                Cow::Borrowed(_) => {},
+                Cow::Owned(_) => needs_alloc = true,
+            }
+            label_start = i + 1;
+        } else if bytes[i] >= 128 {
+            all_ascii = false;
         }
+        i += 1;
+    }
 
+    if !needs_alloc {
+        // All labels are valid ASCII and lowercase, return borrowed
+        return Ok(Cow::Borrowed(domain));
+    }
+
+    // Otherwise, build the result with allocation
+    let mut result = String::with_capacity(domain.len() + 16);
+    let mut first = true;
+    for label in domain.split('.') {
         if !first {
             result.push('.');
         }
         first = false;
-
         let ascii_label = process_label_to_ascii(label)?;
         result.push_str(&ascii_label);
     }
-
-    Ok(result)
+    Ok(Cow::Owned(result))
 }
 
 pub fn to_unicode(domain: &str) -> Result<String, IdnaError> {
@@ -61,29 +83,48 @@ pub fn to_unicode(domain: &str) -> Result<String, IdnaError> {
     Ok(result)
 }
 
-fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {
-    if label.len() > 63 {
+fn process_label_to_ascii(label: &str) -> Result<Cow<str>, IdnaError> {
+    let bytes = label.as_bytes();
+    let len = bytes.len();
+
+    if len == 0 || len > 63 {
         return Err(IdnaError::LabelTooLong);
     }
+    if bytes[0] == b'-' || bytes[len - 1] == b'-' {
+        return Err(IdnaError::ValidationError);
+    }
 
-    // Fast path for ASCII-only labels - optimize the common case
-    if validation::is_ascii(label) {
-        // Check if label is already lowercase ASCII - avoid allocation if possible
-        if label
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
-        {
-            if !validation::is_label_valid(label) {
-                return Err(IdnaError::ValidationError);
-            }
-            return Ok(label.to_string());
+    // Single pass: check ASCII, allowed chars, and hyphen positions
+    let mut all_lower = true;
+    for &b in bytes {
+        if b >= 128 {
+            // Non-ASCII, must fall back to mapping/normalization
+            all_lower = false;
+            break;
         }
+        if !(b'a'..=b'z').contains(&b) && !(b'0'..=b'9').contains(&b) && b != b'-' {
+            // Not lowercase ASCII, digit, or hyphen
+            all_lower = false;
+            break;
+        }
+        if b.is_ascii_uppercase() {
+            all_lower = false;
+            break;
+        }
+    }
 
+    if all_lower {
+        // Already valid ASCII and lowercase
+        return Ok(Cow::Borrowed(label));
+    }
+
+    // If ASCII but contains uppercase, map to lowercase
+    if validation::is_ascii(label) {
         let mapped = mapping::ascii_map(label);
         if !validation::is_label_valid(&mapped) {
             return Err(IdnaError::ValidationError);
         }
-        return Ok(mapped);
+        return Ok(Cow::Owned(mapped));
     }
 
     // Check for forbidden characters early to avoid expensive processing
@@ -114,8 +155,7 @@ fn process_label_to_ascii(label: &str) -> Result<String, IdnaError> {
     if result.len() > 63 {
         return Err(IdnaError::LabelTooLong);
     }
-
-    Ok(result)
+    Ok(Cow::Owned(result))
 }
 
 fn process_label_to_unicode(label: &str) -> Result<String, IdnaError> {

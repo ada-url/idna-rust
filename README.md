@@ -42,19 +42,19 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 | Benchmark | ada-idna | idna crate | Ratio |
 |-----------|----------|------------|-------|
-| **Batch to_ascii conversion** | 7.45 µs | 4.30 µs | 1.73x slower |
-| **Batch to_unicode conversion** | 4.41 µs | 3.94 µs | 1.12x slower |
-| **Single ASCII domain** | 62.13 ns | 17.59 ns | 3.53x slower |
-| **Single Unicode domain** | 19.66 ns | 91.83 ns | **4.67x faster** |
-| **Complex Unicode domain** | 24.20 ns | 183.92 ns | **7.60x faster** |
-| **Non-Latin scripts** | 363.64 ns | 149.70 ns | 2.43x slower |
-| **CJK domains** | 531.77 ns | 170.55 ns | 3.12x slower |
-| **Mixed scripts** | 335.57 ns | 140.03 ns | 2.40x slower |
+| **Batch to_ascii conversion** | 13.21 µs | 4.15 µs | 3.18x slower |
+| **Batch to_unicode conversion** | 4.45 µs | 3.85 µs | 1.16x slower |
+| **Single ASCII domain** | 11.48 ns | 17.60 ns | **1.53x faster** |
+| **Single Unicode domain** | 6.96 ns | 93.02 ns | **13.37x faster** |
+| **Complex Unicode domain** | 9.54 ns | 183.42 ns | **19.23x faster** |
+| **Non-Latin scripts** | 711.70 ns | 154.41 ns | 4.61x slower |
+| **CJK domains** | 1.05 µs | 170.02 ns | 6.18x slower |
+| **Mixed scripts** | 630.00 ns | 141.73 ns | 4.44x slower |
 
 **Ada-idna specific operations:**
-- Punycode encoding: 1.57 µs
-- Punycode decoding: 515.51 ns
-- Unicode normalization: 1.14 µs
+- Punycode encoding: 1.54 µs
+- Punycode decoding: 517.16 ns
+- Unicode normalization: 1.12 µs
 
 *Run `cargo bench` to reproduce these results on your system.*
 
@@ -64,8 +64,8 @@ Benchmarks comparing ada-idna with the popular `idna` crate (lower is better):
 
 Known limitations:
 - Performance is mixed compared to the mature `idna` crate
-- **Ada-idna is significantly faster for single Unicode/complex domains** ⚡
-- **4.67x faster for simple Unicode domains, 7.60x faster for complex Unicode domains**
+- **Ada-idna is significantly faster for single ASCII and Unicode domains** ⚡
+- **13.37x faster for simple Unicode domains, 19.23x faster for complex Unicode domains**
 - Some test cases fail due to expected value discrepancies
 - Unicode table data may be incomplete
 - Error handling needs refinement

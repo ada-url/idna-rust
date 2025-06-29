@@ -27,10 +27,12 @@ fn test_idna_test_v2_fixture() {
         let case: IdnaTestCase = serde_json::from_value(item.clone())
             .unwrap_or_else(|_| panic!("Failed to parse test case at index {}", i));
 
-        let mut output = to_ascii(&case.input).unwrap_or_else(|_| String::new());
-        if contains_forbidden_domain_code_point(&output) {
-            output.clear();
-        }
+        let output_cow = to_ascii(&case.input).unwrap_or_else(|_| String::new().into());
+        let output = if contains_forbidden_domain_code_point(&output_cow) {
+            String::new()
+        } else {
+            output_cow.into_owned()
+        };
 
         match &case.output {
             Some(expected) => assert_eq!(

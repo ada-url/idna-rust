@@ -14,10 +14,11 @@ fn test_wpt_minimal_cases() {
     ];
 
     for (input, expected) in test_cases {
-        let mut output = to_ascii(input).unwrap_or_else(|_| String::new());
+        let mut output = to_ascii(input).unwrap_or_else(|_| String::new().into());
         if contains_forbidden_domain_code_point(&output) {
-            output.clear();
+            output = "".into();
         }
+        let output: String = output.into_owned();
         match expected {
             Some(expected_str) => {
                 assert_eq!(output, expected_str, "Mismatch for input: '{}'", input)
