@@ -1,11 +1,7 @@
 use ada_idna::{unicode, validation};
 
-fn to_utf32(utf8: &str) -> Vec<u32> {
-    unicode::utf8_to_utf32(utf8.as_bytes())
-}
-
 fn verify_code_point(input: &str, first: bool, expected: bool) {
-    let code_points = to_utf32(input);
+    let code_points = unicode::utf8_to_utf32(input.as_bytes());
     assert!(!code_points.is_empty(), "Failed to convert: {}", input);
     let actual = if first {
         validation::valid_name_code_point_first_position(code_points[0])

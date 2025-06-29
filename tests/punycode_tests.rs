@@ -1,4 +1,5 @@
 use ada_idna::{punycode_to_utf32, utf8_to_utf32, utf32_to_punycode, utf32_to_utf8};
+use std::fs;
 
 fn check_punycode_roundtrip(utf8_string: &str, puny_string: &str) {
     // UTF-8 <=> UTF-32 roundtrip
@@ -38,10 +39,21 @@ fn check_punycode_roundtrip(utf8_string: &str, puny_string: &str) {
 }
 
 #[test]
-fn test_punycode_minimal() {
-    // Minimal direct translation of the C++ test (add more pairs as needed)
-    check_punycode_roundtrip("a", "a-");
-    check_punycode_roundtrip("ä", "4ca");
-    check_punycode_roundtrip("ü", "tda");
-    check_punycode_roundtrip("ñ", "ida");
+fn test_punycode_fixture_alternating() {
+    let fixture_path = "tests/fixtures/utf8_punycode_alternating.txt";
+    let data = fs::read_to_string(fixture_path).expect("Failed to read utf8_punycode_alternating.txt fixture");
+
+    for (i, line) in data.lines().enumerate() {
+        // Skip comments and empty lines
+        if line.trim().is_empty() || line.starts_with('#') || line.starts_with("idna-rust/") {
+            continue;
+        }
+        let mut parts = line.splitn(2, '\t');
+        let utf8 = parts.next().unwrap_or("").trim();
+        let puny = parts.next().unwrap_or("").trim();
+        if utf8.is_empty() || puny.is_empty() {
+            continue;
+        }
+        check_punycode_roundtrip(utf8, puny);
+    }
 }
