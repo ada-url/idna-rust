@@ -1,4 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use std::time::Duration;
 
 fn benchmark_to_ascii_ada_vs_idna(c: &mut Criterion) {
     let test_domains = vec![
@@ -257,13 +258,26 @@ fn benchmark_single_domain_performance(c: &mut Criterion) {
     }
 }
 
-criterion_group!(
-    benches,
-    benchmark_to_ascii_ada_vs_idna,
-    benchmark_to_unicode_ada_vs_idna,
-    benchmark_punycode_encoding,
-    benchmark_punycode_decoding,
-    benchmark_unicode_normalization,
-    benchmark_single_domain_performance,
-);
+fn configure_criterion() -> Criterion {
+    Criterion::default()
+        .sample_size(150)
+        .measurement_time(Duration::from_secs(15))
+        .warm_up_time(Duration::from_secs(5))
+        .nresamples(300_000)
+        .noise_threshold(0.005)
+        .significance_level(0.01)
+        .confidence_level(0.99)
+}
+
+criterion_group! {
+    name = benches;
+    config = configure_criterion();
+    targets =
+        benchmark_to_ascii_ada_vs_idna,
+        benchmark_to_unicode_ada_vs_idna,
+        benchmark_punycode_encoding,
+        benchmark_punycode_decoding,
+        benchmark_unicode_normalization,
+        benchmark_single_domain_performance,
+}
 criterion_main!(benches);
