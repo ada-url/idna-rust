@@ -29,7 +29,7 @@ pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
                 return Err(IdnaError::EmptyLabel);
             }
             match process_label_to_ascii(label)? {
-                Cow::Borrowed(_) => {},
+                Cow::Borrowed(_) => {}
                 Cow::Owned(_) => needs_alloc = true,
             }
             label_start = i + 1;
