@@ -18,7 +18,6 @@ pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
 
     // Fast path: check if the whole domain is valid ASCII and doesn't need transformation
     let mut label_start = 0;
-    let mut _all_ascii = true;
     let mut needs_alloc = false;
     let bytes = domain.as_bytes();
     let mut i = 0;
@@ -33,8 +32,6 @@ pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
                 Cow::Owned(_) => needs_alloc = true,
             }
             label_start = i + 1;
-        } else if bytes[i] >= 128 {
-            _all_ascii = false;
         }
         i += 1;
     }
