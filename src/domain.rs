@@ -18,7 +18,6 @@ pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
 
     // Fast path: check if the whole domain is valid ASCII and doesn't need transformation
     let mut label_start = 0;
-    let mut all_ascii = true;
     let mut needs_alloc = false;
     let bytes = domain.as_bytes();
     let mut i = 0;
@@ -29,12 +28,10 @@ pub fn to_ascii(domain: &str) -> Result<Cow<str>, IdnaError> {
                 return Err(IdnaError::EmptyLabel);
             }
             match process_label_to_ascii(label)? {
-                Cow::Borrowed(_) => {},
+                Cow::Borrowed(_) => {}
                 Cow::Owned(_) => needs_alloc = true,
             }
             label_start = i + 1;
-        } else if bytes[i] >= 128 {
-            all_ascii = false;
         }
         i += 1;
     }
@@ -102,7 +99,7 @@ fn process_label_to_ascii(label: &str) -> Result<Cow<str>, IdnaError> {
             all_lower = false;
             break;
         }
-        if !(b'a'..=b'z').contains(&b) && !(b'0'..=b'9').contains(&b) && b != b'-' {
+        if !b.is_ascii_lowercase() && !b.is_ascii_digit() && b != b'-' {
             // Not lowercase ASCII, digit, or hyphen
             all_lower = false;
             break;
